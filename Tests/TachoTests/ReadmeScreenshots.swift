@@ -276,10 +276,24 @@ final class ReadmeScreenshots: XCTestCase {
         return Double(inked) / Double(max(sampled, 1))
     }
 
+    /// `image` on white with no alpha. The panel draws on a see-through material, and a README in a dark theme would show black behind its dark text.
+    private func onWhite(_ image: NSBitmapImageRep) throws -> NSBitmapImageRep {
+        let source = try XCTUnwrap(image.cgImage)
+        let context = try XCTUnwrap(CGContext(
+            data: nil, width: source.width, height: source.height, bitsPerComponent: 8, bytesPerRow: 0,
+            space: try XCTUnwrap(source.colorSpace), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+        ))
+        let area = CGRect(x: 0, y: 0, width: source.width, height: source.height)
+        context.setFillColor(CGColor.white)
+        context.fill(area)
+        context.draw(source, in: area)
+        return NSBitmapImageRep(cgImage: try XCTUnwrap(context.makeImage()))
+    }
+
     /// Throws rather than asserts: a blank page must not replace a good one.
     private func write(_ image: NSBitmapImageRep, to url: URL) throws {
         guard ink(image) > Self.leastInk else { throw BlankPage(file: url.lastPathComponent) }
-        try XCTUnwrap(image.representation(using: .png, properties: [:])).write(to: url)
+        try XCTUnwrap(try onWhite(image).representation(using: .png, properties: [:])).write(to: url)
     }
 
     /// As the app builds it, but with no saved frame: that would go in the shared defaults of whatever runs the tests.
