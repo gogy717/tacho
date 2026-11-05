@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the app, zip and dmg
+        run: scripts/bundle.sh "${GITHUB_REF_NAME#v}"
+
+      - name: Write the checksums
+        working-directory: build
+        run: shasum -a 256 Tacho-*.zip Tacho-*.dmg > SHA256SUMS.txt
+
+      # The tag's section of CHANGELOG.md. An empty one stops the release: the tag has no notes yet.
+      - name: Take the release notes from the changelog
+        run: |
+          awk -v heading="## ${GITHUB_REF_NAME#v}" '
+            $0 == heading { found = 1; next }
+            /^## / { found = 0 }
+            found
+          ' CHANGELOG.md > build/release-notes.md
+          grep -q '[^[:space:]]' build/release-notes.md
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "$GITHUB_REF_NAME" build/Tacho-*.zip build/Tacho-*.dmg build/SHA256SUMS.txt --notes-file build/release-notes.md
