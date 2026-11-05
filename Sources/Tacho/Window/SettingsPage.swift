@@ -106,7 +106,8 @@ private struct LoginSetting: View {
     var body: some View {
         Toggle(
             String(localized: "settings.launchAtLogin", bundle: .tacho),
-            isOn: Binding(get: { status == .enabled || status == .requiresApproval }, set: change)
+            // A closure, not `change` itself: passing the method crashes the Swift 6.1 compiler.
+            isOn: Binding(get: { status == .enabled || status == .requiresApproval }, set: { change($0) })
         )
         if status == .requiresApproval {
             SettingNote(String(localized: "settings.launchNeedsApproval", bundle: .tacho))

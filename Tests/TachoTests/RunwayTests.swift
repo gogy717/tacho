@@ -33,12 +33,14 @@ struct RunwayTests {
     @Test func lastingShowsWhereItEndsUp() {
         let quota = WindowSamples.projection(percent: 40, outcome: .lastsUntilReset, recentPerHour: 4)
         // 9,300 s to the reset, at 4% an hour.
-        #expect(Runway(quota, now: now).forecast == .reaches(percent: 40 + 4 * 9_300 / 3_600))
+        let percent: Double = 40 + 4 * 9_300 / 3_600
+        #expect(Runway(quota, now: now).forecast == .reaches(percent: percent))
     }
 
     @Test func aWindowAverageForecastUsesThatPace() {
         let quota = WindowSamples.projection(percent: 40, outcome: .lastsUntilReset, method: .windowAverage, windowPerHour: 2)
-        #expect(Runway(quota, now: now).forecast == .reaches(percent: 40 + 2 * 9_300 / 3_600))
+        let percent: Double = 40 + 2 * 9_300 / 3_600
+        #expect(Runway(quota, now: now).forecast == .reaches(percent: percent))
     }
 
     @Test func noForecastEverPassesAHundred() {

@@ -480,14 +480,13 @@ struct QueriesTests {
     }
 
     @Test func quarterHourGroupsAddUpToThePricingGroups() throws {
-        let store = try store((0..<40).map { step in
-            event(
-                "\(step)",
-                at: noon.addingTimeInterval(Double(step) * 137),
-                model: step % 2 == 0 ? "m1" : "m2",
-                tokens: TokenCounts(input: step % 3 == 0 ? 150_000 : 10, output: step)
-            )
-        })
+        let events: [UsageEvent] = (0..<40).map { (step: Int) -> UsageEvent in
+            let input = step % 3 == 0 ? 150_000 : 10
+            let model = step % 2 == 0 ? "m1" : "m2"
+            let time = noon.addingTimeInterval(Double(step) * 137)
+            return event("\(step)", at: time, model: model, tokens: TokenCounts(input: input, output: step))
+        }
+        let store = try store(events)
         let thresholds = [100_000]
         let total = { (groups: [PricingGroup]) in groups.reduce(TokenCounts.zero) { $0 + $1.tokens } }
         let quarterHours = try store.quarterHourGroups(in: everything, thresholds: thresholds).map(\.group)

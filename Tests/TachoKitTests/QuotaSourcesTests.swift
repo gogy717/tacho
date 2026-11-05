@@ -613,7 +613,8 @@ struct QuotaSourcesTests {
     @Test func commandOutputGivesUpAtTheTimeout() throws {
         let started = Date()
         #expect(try AnthropicUsageFetcher.commandOutput("/bin/sleep", ["30"], timeout: 0.1) == nil)
-        #expect(Date().timeIntervalSince(started) < 10)
+        // Under the 30 s the command would take, with room for a loaded CI runner.
+        #expect(Date().timeIntervalSince(started) < 25)
     }
 
     @Test func commandOutputThrowsForACommandThatIsNotThere() {
@@ -623,6 +624,9 @@ struct QuotaSourcesTests {
     @Test func theRealSendStopsAtARedirect() async throws {
         let configuration = AnthropicUsageFetcher.sessionConfiguration
         configuration.protocolClasses = [RedirectingProtocol.self]
+        // The real 10 s limit is for a network. Nothing leaves this process here, and a loaded CI runner can take longer than that.
+        configuration.timeoutIntervalForRequest = 60
+        configuration.timeoutIntervalForResource = 60
         RedirectingProtocol.requested.withLock { $0 = [] }
 
         let (_, response) = try await AnthropicUsageFetcher.send(URLRequest(url: AnthropicUsageFetcher.url), configuration: configuration)

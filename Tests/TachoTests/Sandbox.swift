@@ -74,6 +74,18 @@ extension AppDelegate {
 }
 
 enum Tests {
+    /// The strings of `language`. SwiftPM's debug build on Swift 6.1 writes `zh-hans.lproj`; a release build keeps the case.
+    static func strings(_ language: String) -> Bundle? {
+        (Bundle.tacho.path(forResource: language, ofType: "lproj") ?? Bundle.tacho.path(forResource: language.lowercased(), ofType: "lproj"))
+            .flatMap(Bundle.init(path:))
+    }
+
+    /// Whether this screen can hold the window at full size. A CI runner's is 1024 by 768, and a window takes only what the screen has.
+    @MainActor static var screenHoldsTheWindow: Bool {
+        guard let screen = NSScreen.main else { return false }
+        return screen.visibleFrame.width >= 1240 && screen.visibleFrame.height >= 800
+    }
+
     /// Waits on the condition, not on a clock: under a loaded full run any fixed sleep is too short sooner or later.
     @MainActor static func eventually(within limit: Duration = .seconds(10), _ condition: () -> Bool) async -> Bool {
         let deadline = ContinuousClock.now.advanced(by: limit)

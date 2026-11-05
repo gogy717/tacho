@@ -282,7 +282,7 @@ struct CutOffFiguresTests {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC") ?? .current
         let language = locale.language.languageCode == .chinese ? "zh-Hans" : "en"
-        let table = Bundle.tacho.path(forResource: language, ofType: "lproj").flatMap(Bundle.init(path:)) ?? .tacho
+        let table = Tests.strings(language) ?? .tacho
         var said: [String] = []
         for (month, hour, minute) in [(11, 10, 48), (12, 0, 48), (3, 12, 48), (5, 22, 58), (9, 10, 58), (10, 0, 58)] {
             guard let date = calendar.date(from: DateComponents(year: 2026, month: month, day: 28, hour: hour, minute: minute)) else { continue }

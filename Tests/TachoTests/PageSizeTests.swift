@@ -34,7 +34,7 @@ struct PageSizeTests {
         .frame(width: width)
     }
 
-    @Test(arguments: Page.allCases)
+    @Test(.enabled("the screen must hold the whole window") { await Tests.screenHoldsTheWindow }, arguments: Page.allCases)
     func noPageChangesTheWindowsSize(page: Page) async throws {
         let sandbox = try Sandbox()
         try answered(sandbox)

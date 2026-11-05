@@ -68,8 +68,8 @@ struct LabelsTests {
     ]
 
     @Test func aTimeSaysWhichDayItIsOn() throws {
-        let english = try #require(Bundle.tacho.path(forResource: "en", ofType: "lproj").flatMap(Bundle.init(path:)))
-        let chinese = try #require(Bundle.tacho.path(forResource: "zh-Hans", ofType: "lproj").flatMap(Bundle.init(path:)))
+        let english = try #require(Tests.strings("en"))
+        let chinese = try #require(Tests.strings("zh-Hans"))
         for day in Self.days {
             let en = Labels.reset(local(day.date), now: local(day.now), calendar: sydney, locale: Labels.locale(language: "en", region: "US"), bundle: english)
             let zh = Labels.reset(local(day.date), now: local(day.now), calendar: sydney, locale: Labels.locale(language: "zh-Hans", region: "AU"), bundle: chinese)
@@ -80,7 +80,7 @@ struct LabelsTests {
 
     /// The day and the clock come from one zone, the calendar's, whatever the Mac's is. These fixtures are in Sydney, so this one is not.
     @Test func aTimeIsPrintedInItsCalendarsZone() throws {
-        let english = try #require(Bundle.tacho.path(forResource: "en", ofType: "lproj").flatMap(Bundle.init(path:)))
+        let english = try #require(Tests.strings("en"))
         var newYork = Calendar(identifier: .gregorian)
         newYork.timeZone = TimeZone(identifier: "America/New_York")!
         let now = try #require(newYork.date(from: DateComponents(year: 2026, month: 11, day: 5, hour: 23)))

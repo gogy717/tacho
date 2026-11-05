@@ -19,7 +19,8 @@ struct MainWindowTests {
         }
     }
 
-    @Test func itOpensAtItsFullSize() async throws {
+    @Test(.enabled("the screen must hold the whole window") { await Tests.screenHoldsTheWindow })
+    func itOpensAtItsFullSize() async throws {
         let sandbox = try Sandbox()
         try answered(sandbox)
         let delegate = delegate(sandbox)
@@ -101,7 +102,8 @@ struct MainWindowTests {
         #expect(await Tests.eventually { (window.attachedSheet?.frame.height ?? 0) > 100 })
     }
 
-    @Test func theBlockedNoteKeepsTheWindowsSize() async throws {
+    @Test(.enabled("the screen must hold the whole window") { await Tests.screenHoldsTheWindow })
+    func theBlockedNoteKeepsTheWindowsSize() async throws {
         let sandbox = try Sandbox()
         try answered(sandbox)
         let delegate = delegate(sandbox)

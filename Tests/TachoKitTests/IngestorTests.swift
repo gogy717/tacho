@@ -1506,7 +1506,8 @@ struct IngestorTests {
         await ingestor.startWatching()
         await ingestor.startWatching()
         let looks = spy.discoveries
-        #expect(try await eventually { spy.discoveries >= looks + 3 })
+        // A long deadline for a loaded CI runner: on a free machine this takes a fraction of a second.
+        #expect(try await eventually(within: 30) { spy.discoveries >= looks + 3 })
 
         await ingestor.stopWatching()
         // A rescan already on its way when the loop was cancelled can still finish.

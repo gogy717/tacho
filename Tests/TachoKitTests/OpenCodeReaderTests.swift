@@ -3,6 +3,12 @@ import GRDB
 import Testing
 @testable import TachoKit
 
+/// The comparison stays outside `#require`: with GRDB imported, Swift 6.1 reads `==` there as the SQL operator.
+private func succeed(_ status: Int32) throws {
+    let succeeded: Bool = status == 0
+    try #require(succeeded)
+}
+
 struct OpenCodeReaderTests {
     private let reader = OpenCodeReader()
 
@@ -94,7 +100,7 @@ struct OpenCodeReaderTests {
     /// A cursor of `file` that has seen rows up to `updated`.
     private func cursor(after updated: Int, of file: URL) throws -> FileCursor {
         var status = stat()
-        try #require(stat(file.path, &status) == 0)
+        try succeed(stat(file.path, &status))
         return FileCursor(inode: UInt64(status.st_ino), size: 0, offset: 0, mtime: Date(timeIntervalSince1970: 0), state: Data(String(updated).utf8))
     }
 
@@ -112,12 +118,12 @@ struct OpenCodeReaderTests {
     /// the same file to a `stat`, and no database to SQLite: any query on it fails, which is how these tests see that none ran.
     private func spoil(_ file: URL) throws {
         var before = stat()
-        try #require(stat(file.path, &before) == 0)
+        try succeed(stat(file.path, &before))
         let handle = try FileHandle(forWritingTo: file)
         try handle.write(contentsOf: Data(repeating: 0x5A, count: Int(before.st_size)))
         try handle.close()
         var times = [before.st_atimespec, before.st_mtimespec]
-        try #require(utimensat(AT_FDCWD, file.path, &times, 0) == 0)
+        try succeed(utimensat(AT_FDCWD, file.path, &times, 0))
     }
 
     /// What a read must leave as it found it.
@@ -471,7 +477,7 @@ struct OpenCodeReaderTests {
     func aJournalLeftOutForItsModeIsReadWhenThatComesRight(suffix: String) throws {
         let file = try journalledDatabase()
         var status = stat()
-        try #require(stat(file.path + suffix, &status) == 0)
+        try succeed(stat(file.path + suffix, &status))
         let mode = Int(status.st_mode & 0o777)
         try chmod(mode ^ 0o040, file.path + suffix)
         let first = try reader.read(file, from: nil)
@@ -550,10 +556,10 @@ struct OpenCodeReaderTests {
         let file = try database([MessageRow()])
         let first = try reader.read(file, from: nil)
         var before = stat()
-        try #require(stat(file.path, &before) == 0)
+        try succeed(stat(file.path, &before))
         try append("\0", to: file)
         var times = [before.st_atimespec, before.st_mtimespec]
-        try #require(utimensat(AT_FDCWD, file.path, &times, 0) == 0)
+        try succeed(utimensat(AT_FDCWD, file.path, &times, 0))
 
         #expect(try reader.read(file, from: first.cursor).cursor != first.cursor)
     }
@@ -563,7 +569,7 @@ struct OpenCodeReaderTests {
         let file = try database([MessageRow(id: "m1", updated: 500)])
         let first = try reader.read(file, from: nil)
         let older = try database([MessageRow(id: "old1", updated: 100), MessageRow(id: "old2", updated: 200)])
-        try #require(rename(older.path, file.path) == 0)
+        try succeed(rename(older.path, file.path))
 
         let second = try reader.read(file, from: first.cursor)
 
@@ -577,12 +583,12 @@ struct OpenCodeReaderTests {
         let file = try database([MessageRow(id: "m1", updated: 100)])
         let first = try reader.read(file, from: nil)
         var before = stat()
-        try #require(stat(file.path, &before) == 0)
+        try succeed(stat(file.path, &before))
         let copy = file.appendingPathExtension("new")
         try FileManager.default.copyItem(at: file, to: copy)
         var times = [before.st_atimespec, before.st_mtimespec]
-        try #require(utimensat(AT_FDCWD, copy.path, &times, 0) == 0)
-        try #require(rename(copy.path, file.path) == 0)
+        try succeed(utimensat(AT_FDCWD, copy.path, &times, 0))
+        try succeed(rename(copy.path, file.path))
 
         #expect(try reader.read(file, from: first.cursor).cursor != first.cursor)
     }

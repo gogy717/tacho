@@ -164,7 +164,7 @@ struct WindowLabelsTests {
     /// `zh_Hans_AU` is a real person's locale: outside China, Chinese takes a 12-hour clock from the region.
     @Test(arguments: [("en_US", "en"), ("en_AU", "en"), ("zh_Hans_CN", "zh-Hans"), ("zh_Hans_AU", "zh-Hans"), ("zh_Hans_US", "zh-Hans")])
     func theWidestOlderRowFitsTheColumn(locale: String, language: String) throws {
-        let table = try #require(Bundle.tacho.path(forResource: language, ofType: "lproj").flatMap(Bundle.init(path:)))
+        let table = try #require(Tests.strings(language))
         // Two-digit months and days, and each kind of hour: AM is wider than PM, and 12 is as wide as 10.
         let widest = try (1...12).flatMap { month in
             try [0, 10, 12, 22].map { hour in
