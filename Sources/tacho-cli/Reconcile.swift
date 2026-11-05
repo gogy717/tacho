@@ -201,7 +201,9 @@ struct Reconcile {
                 recordsNotInStore += 1
                 continue
             }
-            if [record.input, record.output, record.cacheRead, record.cacheWrite] == [tokens.input, tokens.output, tokens.cacheRead, tokens.cacheWrite] {
+            // Field by field: Swift 6.1 calls the same comparison of two array literals ambiguous.
+            if record.input == tokens.input, record.output == tokens.output,
+               record.cacheRead == tokens.cacheRead, record.cacheWrite == tokens.cacheWrite {
                 recordsEqual += 1
             } else {
                 recordsDiffering += 1
